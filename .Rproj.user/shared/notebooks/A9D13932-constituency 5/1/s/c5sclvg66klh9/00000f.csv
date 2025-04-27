@@ -1,0 +1,4 @@
+"0","mod3 <- combined_WP %>% lm(share_WP ~ dwelling_2, data = .)"
+"2","model.frame.default(formula = share_WP ~ dwelling_2, data = ., 에서 다음과 같은 에러가 발생했습니다: 
+  변수 dwelling_2에 유효하지 않은 타입 (list)입니다
+"

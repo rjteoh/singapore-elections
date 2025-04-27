@@ -1,0 +1,2 @@
+"0","combined <- combined %>% mutate(share_all = PAP / Electorate * 100)"
+"0","combined_WP <- combined %>% filter(!is.na(WP)) %>% mutate(share_WP = PAP / Electorate * 100)"

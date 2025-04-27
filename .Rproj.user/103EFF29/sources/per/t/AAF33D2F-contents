@@ -1,0 +1,83 @@
+---
+title: "Constituency 4"
+author: "Shin Haeng Lee"
+date: "2025-02-28"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list = ls())
+library(tidyverse)
+library(dplyr)
+library(janitor)
+setwd("C:/Users/leesh/OneDrive - Stanford/2024@Stanford/2 Winter/1. Research Methods 2/final project/contituency")
+```
+
+```{r}
+election <- read.csv("election_detailed_clean.csv")
+election_2020 <- election %>% filter(Year == 2020)
+
+geo_income_2020 <- read.csv("2020_geographic_distribution_cleaning.csv")
+geo_income_2020 <- geo_income_2020 %>% rename(Planning.Areas = Planning.Area.of.Workplace)
+
+area <- read.csv("Singapore Constituencies by Planning Area_revised.csv")
+area <- area %>% rename(Constituency = GRC.SMC)
+
+election_2020 <- election_2020 %>% 
+  mutate(Constituency = ifelse(row_number() == 29, "Tampines GRC", Constituency))
+```
+
+```{r}
+combined <- left_join(election_2020, area, by = "Constituency")
+```
+
+```{r}
+combined <- combined %>% mutate(share_all = PAP / Electorate)
+combined <- combined %>% mutate(share_WP = PAP / (PAP + WP))
+```
+
+
+```{r}
+combined <- left_join(combined, geo_income_2020, by = "Planning.Areas")
+combined %>% clean_names()
+```
+
+```{r}
+population <- read.csv("population.csv")
+```
+
+```{r}
+floorarea <- read.csv("floorarea.csv")
+floorarea <- floorarea %>% rename(Planning.Areas = planning_area)
+```
+
+```{r}
+combined <- left_join(combined, population, by = "Planning.Areas")
+```
+
+```{r}
+combined <- left_join(combined, floorarea, by = "Planning.Areas")
+```
+
+
+```{r}
+# new variable - share of males
+combined <- combined %>% mutate(share_male = as.numeric(gsub(",", "", Males)) / as.numeric(gsub(",", "", total.x)))
+```
+
+```{r}
+combined <- combined %>% mutate(inc_share_high = (as.numeric(gsub(",", "", X.11.000....11.999 )) + as.numeric(gsub(",", "", X.12.000....14.999)) + as.numeric(gsub(",", "", X.15.000...Over))) / as.numeric(gsub(",", "", Total)))
+```
+
+
+```{r}
+mod1 <- combined %>% lm(share_all ~ inc_share_high + share_male + share, data = .)
+summary(mod1)
+```
+
+
+
