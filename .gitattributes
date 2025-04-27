@@ -1,0 +1,6 @@
+# Detect R files
+*.R linguist-detectable=true
+
+# Ignore non-code files
+*.csv linguist-vendored
+*.html linguist-vendored
