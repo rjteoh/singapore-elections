@@ -23,13 +23,6 @@ cpi_quart <- read.csv(here("Data", "cpi_quarterly.csv"))
 unemp_annual <- read.csv(here("Data", "unemployment_annual_estimated.csv"))
 election_dates <- read.csv(here("Data", "election_dates.csv"))
 
-# creating helper function to calculate heteroskedascity robust ses
-# for printing in stargazer
-robust_se <- function(model) {
-  sqrt(diag(vcovHC(model, type = "HC3")))
-}
-
-
 #----Adding by-election data to general election data---
 
 # adding boolean to distinguish between by- and general elections
@@ -226,7 +219,7 @@ mod_qtr_ctrl2 <- lm(PAP ~  GDP.Qtr.Lag + Total.Unemp.1yr + Inflation.1yr, data =
 # exporting data
 write.csv(sg_vote, here("sg_vote.csv"), row.names = FALSE)
 
-# exporting results of single variable regressions of GDP growth using robust ses
+# exporting results of single variable regressions of GDP growth
 stargazer(mod_cap, mod_yr, mod_qtr, mod_PAPcap, mod_PAPyr, mod_PAPqtr, type = 'html', 
           # setting title
           title = "Estimating the effect of GDP growth on the PAP's vote share in general elections",
@@ -236,9 +229,10 @@ stargazer(mod_cap, mod_yr, mod_qtr, mod_PAPcap, mod_PAPyr, mod_PAPqtr, type = 'h
           covariate.labels = c("Election-Year GDP Per Capita Growth (%)", "Election-Year GDP Growth (%)", 
                                "GDP Growth in Quarter Prior to Election (%)"),
           align = TRUE, # aligning table nicely
+          p.auto = TRUE, # printing p values
           out = here('genelection_monovariate.html')) # saving as file
 
-# exporting results of single variable regressions of unemployment using robust ses
+# exporting results of single variable regressions of unemployment
 stargazer(mod_unemp, mod_PAPunemp, type = 'html', 
           # setting title
           title = "Estimating the effect of unemployment on the PAP's vote share in general elections",
@@ -247,6 +241,7 @@ stargazer(mod_unemp, mod_PAPunemp, type = 'html',
           # labeling covariates 
           covariate.labels = c("Election-Year Unemployment Rate (%)"),
           align = TRUE, # aligning table nicely
+          p.auto = TRUE, # printing p values
           out = here('genelection_unemp.html')) # saving as file
 
 
@@ -263,9 +258,57 @@ stargazer(mod_cap_ctrl, mod_qtr_ctrl, mod_cap_ctrl2, mod_qtr_ctrl2, type = 'html
                                "Election-Year Inflation Rate (%)"),
           digits = 3, # setting to 3 s.f.
           align = TRUE, # aligning table nicely
+          p.auto = TRUE, # printing p values
             out = here('genelection_covariate.html')) # saving as file
 
-#----Exporting Results with robust ses----
+#----Adding by-election results----
+
+# checking if our model holds once we expand the dataset to include by-elections - it does, but only for the per capita data
+mod_qtrby <- lm(PAP.WP ~  GDP.Qtr.Lag, data = sg_vote)
+mod_unempby <- lm(PAP.WP ~  Total.Unemp.1yr, data = sg_vote)
+mod_ctrlby <- lm(PAP.WP ~  GDP.Qtr.Lag + Total.Unemp.1yr + Inflation.1yr, data = sg_vote)
+mod_qtrby2 <- lm(PAP ~  GDP.Qtr.Lag, data = sg_vote)
+mod_unempby2 <- lm(PAP ~  Total.Unemp.1yr, data = sg_vote)
+mod_ctrlby2 <- lm(PAP ~  GDP.Qtr.Lag + Total.Unemp.1yr + Inflation.1yr, data = sg_vote)
+
+# instead the unemployment factor becomes more significant
+mod_unemp <- lm(PAP.WP ~ Total.Unemp.1yr, data = sg_vote)
+summary(mod_unemp)
+
+# exporting result of covariate regressions including by-elections
+stargazer(mod_ctrlby, mod_ctrlby2, type = 'html', 
+          # setting title
+          title = "Estimating the effect of GDP growth on the PAP's vote share in all elections (incl. by elections)",
+          # labeling dependent variables
+          dep.var.labels = c("PAP vote share vs WP only", "PAP total vote share"),
+          # labeling covariates 
+          covariate.labels = c("GDP Growth in Quarter Prior to Election (%)", "Election-Year Unemployment Rate (%)"),
+          omit = c("Inflation.1yr"),
+          omit.labels = c("Inflation Controls"),
+          digits = 3, # setting to 3 s.f.
+          align = TRUE, # aligning table nicely
+          p.auto = TRUE, # printing p values
+          out = here('allelection.html')) # saving as file
+
+#----Calculating Results with robust ses----
+
+# checking for heteroskedacity - eyeball test suggests there isn't any
+ggplot(data = sg_vote_gen, aes(x = fitted(mod_qtr_ctrl), y = resid(mod_qtr_ctrl))) +
+  geom_point(color = "blue") +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
+  labs(title = "Residuals vs. Fitted Values",
+       x = "Fitted Values",
+       y = "Residuals") +
+  theme_minimal()
+
+# bptest results aren't significant either
+bptest(mod_qtr_ctrl)
+
+# But lets go ahead and use this function to calculate robust ses
+# anyway just to see what results look like 
+robust_se <- function(model) {
+  sqrt(diag(vcovHC(model, type = "HC3")))
+}
 
 # exporting results of single variable regressions of GDP growth using robust ses
 stargazer(mod_cap, mod_yr, mod_qtr, mod_PAPcap, mod_PAPyr, mod_PAPqtr, type = 'html', 
@@ -305,7 +348,7 @@ stargazer(mod_unemp, mod_PAPunemp, type = 'html',
           out = here('Robust Results', 'genelection_unempR.html')) # saving as file
 
 
-# exporting result of covariate regressions
+# exporting result of covariate regressions using robust ses
 stargazer(mod_cap_ctrl, mod_qtr_ctrl, mod_cap_ctrl2, mod_qtr_ctrl2, type = 'html', 
           # setting title
           title = "Estimating the effect of economic variables on the PAP's vote share in general elections",
@@ -327,39 +370,9 @@ stargazer(mod_cap_ctrl, mod_qtr_ctrl, mod_cap_ctrl2, mod_qtr_ctrl2, type = 'html
           align = TRUE, # aligning table nicely
           out = here('Robust Results', 'genelection_covariateR.html')) # saving as file
 
+#---- Outlier tests----
 
-
-#----Adding by-election results----
-
-# checking if our model holds once we expand the dataset to include by-elections - it does, but only for the per capita data
-mod_qtrby <- lm(PAP.WP ~  GDP.Qtr.Lag, data = sg_vote)
-mod_unempby <- lm(PAP.WP ~  Total.Unemp.1yr, data = sg_vote)
-mod_ctrlby <- lm(PAP.WP ~  GDP.Qtr.Lag + Total.Unemp.1yr + Inflation.1yr, data = sg_vote)
-mod_qtrby2 <- lm(PAP ~  GDP.Qtr.Lag, data = sg_vote)
-mod_unempby2 <- lm(PAP ~  Total.Unemp.1yr, data = sg_vote)
-mod_ctrlby2 <- lm(PAP ~  GDP.Qtr.Lag + Total.Unemp.1yr + Inflation.1yr, data = sg_vote)
-
-# instead the unemployment factor becomes more significant
-mod_unemp <- lm(PAP.WP ~ Total.Unemp.1yr, data = sg_vote)
-summary(mod_unemp)
-
-# exporting result of covariate regressions including by-elections
-stargazer(mod_ctrlby, mod_ctrlby2, type = 'html', 
-          # setting title
-          title = "Estimating the effect of GDP growth on the PAP's vote share in all elections (incl. by elections)",
-          # labeling dependent variables
-          dep.var.labels = c("PAP vote share vs WP only", "PAP total vote share"),
-          # labeling covariates 
-          covariate.labels = c("GDP Growth in Quarter Prior to Election (%)", "Election-Year Unemployment Rate (%)"),
-          omit = c("Inflation.1yr"),
-          omit.labels = c("Inflation Controls"),
-          digits = 3, # setting to 3 s.f.
-          align = TRUE, # aligning table nicely
-          out = here('allelection.html')) # saving as file
-
-#---- Outlier  test----
-
-# creating a graph to show the 2020 outlier
+#  note that 2020 was a huge outlier in our data, as this graph demonstrates
 outlier_graph <- sg_vote_gen %>%
   ggplot(
     aes(x = GDP.Qtr.Lag, y = PAP.WP)
@@ -374,8 +387,8 @@ outlier_graph <- sg_vote_gen %>%
 
 ggsave(here("outlier_graph.png"), outlier_graph, width = 6, height = 4)
 
-# note that our model starts to break down if we remove the outlier year of 2020
-# where economic growth was terrible - and yet the unemployment factor holds
+# our model actually starts to break down if we remove that outlier, so we should
+# be cautious about validity
 sg_test <- sg_vote %>% filter(Year < 2020)
 mod_test <- lm(PAP.WP ~ GDP.Qtr.Lag + Total.Unemp.1yr + Inflation.1yr, data = sg_test)
 summary(mod_test)
