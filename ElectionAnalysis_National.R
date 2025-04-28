@@ -264,27 +264,21 @@ stargazer(mod_cap_ctrl, mod_qtr_ctrl, mod_cap_ctrl2, mod_qtr_ctrl2, type = 'html
 #----Adding by-election results----
 
 # checking if our model holds once we expand the dataset to include by-elections - it does, but only for the per capita data
-mod_qtrby <- lm(PAP.WP ~  GDP.Qtr.Lag, data = sg_vote)
-mod_unempby <- lm(PAP.WP ~  Total.Unemp.1yr, data = sg_vote)
-mod_ctrlby <- lm(PAP.WP ~  GDP.Qtr.Lag + Total.Unemp.1yr + Inflation.1yr, data = sg_vote)
-mod_qtrby2 <- lm(PAP ~  GDP.Qtr.Lag, data = sg_vote)
-mod_unempby2 <- lm(PAP ~  Total.Unemp.1yr, data = sg_vote)
-mod_ctrlby2 <- lm(PAP ~  GDP.Qtr.Lag + Total.Unemp.1yr + Inflation.1yr, data = sg_vote)
-
-# instead the unemployment factor becomes more significant
-mod_unemp <- lm(PAP.WP ~ Total.Unemp.1yr, data = sg_vote)
-summary(mod_unemp)
+mod_ctrlby <- lm(PAP.WP ~  GDP.1yr.Cap + Total.Unemp.1yr + Inflation.1yr, data = sg_vote)
+mod_ctrlby2 <- lm(PAP.WP ~  GDP.1yr + Total.Unemp.1yr + Inflation.1yr, data = sg_vote)
+mod_ctrlby3 <- lm(PAP.WP ~  GDP.Qtr.Lag + Total.Unemp.1yr + Inflation.1yr, data = sg_vote)
 
 # exporting result of covariate regressions including by-elections
-stargazer(mod_ctrlby, mod_ctrlby2, type = 'html', 
+stargazer(mod_ctrlby, mod_ctrlby2, mod_ctrlby3, type = 'html', 
           # setting title
-          title = "Estimating the effect of GDP growth on the PAP's vote share in all elections (incl. by elections)",
+          title = "Estimating the effect of GDP growth on the PAP's vote share vs WP in all elections (incl. by elections)",
           # labeling dependent variables
-          dep.var.labels = c("PAP vote share vs WP only", "PAP total vote share"),
+          dep.var.labels = c("PAP vote share vs WP only"),
           # labeling covariates 
-          covariate.labels = c("GDP Growth in Quarter Prior to Election (%)", "Election-Year Unemployment Rate (%)"),
-          omit = c("Inflation.1yr"),
-          omit.labels = c("Inflation Controls"),
+          covariate.labels = c("Election-Year GDP Per Capita Growth (%)", "Election-Year GDP Growth (%)", 
+                               "GDP Growth in Quarter Prior to Election (%)"),
+          omit = c("Total.Unemp.1yr", "Inflation.1yr"),
+          omit.labels = c("Unemployment Controls", "Inflation Controls"),
           digits = 3, # setting to 3 s.f.
           align = TRUE, # aligning table nicely
           p.auto = TRUE, # printing p values
