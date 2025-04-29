@@ -1,1 +1,0 @@
-"0","combined <- combined %>% mutate(inc_share_high = (as.numeric(gsub("","", """", X.11.000....11.999 )) + as.numeric(gsub("","", """", X.12.000....14.999)) + as.numeric(gsub("","", """", X.15.000...Over))) / as.numeric(gsub("","", """", Total)))"

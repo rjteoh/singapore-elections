@@ -1,8 +1,0 @@
-"0","election <- read.csv(""election_detailed_clean.csv"")"
-"0","election_2020 <- election %>% filter(Year == 2020)"
-"0",""
-"0","geo_income_2020 <- read.csv(""2020_geographic_distribution_cleaning.csv"")"
-"0","area <- read.csv(""Singapore Constituencies by Planning Area.csv"")"
-"0",""
-"0","election_2020 <- election_2020 %>% "
-"0","  mutate(Constituency = ifelse(row_number() == 29, ""Tampines GRC"", Constituency))"

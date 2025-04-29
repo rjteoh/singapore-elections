@@ -206,12 +206,12 @@ mod_unemp <- lm(PAP.WP ~ Total.Unemp.1yr, data = sg_vote_gen)
 mod_inflate <- lm(PAP.WP ~ Inflation.1yr, data = sg_vote_gen)
 
 # adding controls for the various regressions
-mod_yr_ctrl <- lm(PAP.WP ~  GDP.1yr + Total.Unemp.1yr + Inflation.1yr, data = sg_vote_gen)
-mod_cap_ctrl <- lm(PAP.WP ~  GDP.1yr.Cap + Total.Unemp.1yr + Inflation.1yr, data = sg_vote_gen)
-mod_qtr_ctrl <- lm(PAP.WP ~  GDP.Qtr.Lag + Total.Unemp.1yr + Inflation.1yr, data = sg_vote_gen)
-mod_yr_ctrl2 <- lm(PAP ~  GDP.1yr + Total.Unemp.1yr + Inflation.1yr, data = sg_vote_gen)
-mod_cap_ctrl2 <- lm(PAP ~  GDP.1yr.Cap + Total.Unemp.1yr + Inflation.1yr, data = sg_vote_gen)
-mod_qtr_ctrl2 <- lm(PAP ~  GDP.Qtr.Lag + Total.Unemp.1yr + Inflation.1yr, data = sg_vote_gen)
+mod_yr_c <- lm(PAP.WP ~  GDP.1yr + Total.Unemp.1yr + Inflation.1yr, data = sg_vote_gen)
+mod_cap_c <- lm(PAP.WP ~  GDP.1yr.Cap + Total.Unemp.1yr + Inflation.1yr, data = sg_vote_gen)
+mod_qtr_c <- lm(PAP.WP ~  GDP.Qtr.Lag + Total.Unemp.1yr + Inflation.1yr, data = sg_vote_gen)
+mod_yr_c2 <- lm(PAP ~  GDP.1yr + Total.Unemp.1yr + Inflation.1yr, data = sg_vote_gen)
+mod_cap_c2 <- lm(PAP ~  GDP.1yr.Cap + Total.Unemp.1yr + Inflation.1yr, data = sg_vote_gen)
+mod_qtr_c2 <- lm(PAP ~  GDP.Qtr.Lag + Total.Unemp.1yr + Inflation.1yr, data = sg_vote_gen)
 
 
 #----Exporting Data & Results----
@@ -246,13 +246,14 @@ stargazer(mod_unemp, mod_PAPunemp, type = 'html',
 
 
 # exporting result of covariate regressions
-stargazer(mod_cap_ctrl, mod_qtr_ctrl, mod_cap_ctrl2, mod_qtr_ctrl2, type = 'html', 
+stargazer(mod_cap_c, mod_yr_c, mod_qtr_c, mod_cap_c2, mod_yr_c2, mod_qtr_c2, type = 'html', 
           # setting title
           title = "Estimating the effect of economic variables on the PAP's vote share in general elections",
           # labeling dependent variables
           dep.var.labels = c("PAP vote share vs WP only", "PAP total vote share"),
           # labeling covariates 
           covariate.labels = c("Election-Year GDP Per Capita Growth (%)", 
+                               "Election-Year GDP Growth (%)", 
                                "GDP Growth in Quarter Prior to Election (%)", 
                                "Election-Year Unemployment Rate (%)", 
                                "Election-Year Inflation Rate (%)"),
@@ -287,7 +288,7 @@ stargazer(mod_ctrlby, mod_ctrlby2, mod_ctrlby3, type = 'html',
 #----Calculating Results with robust ses----
 
 # checking for heteroskedacity - eyeball test suggests there isn't any
-ggplot(data = sg_vote_gen, aes(x = fitted(mod_qtr_ctrl), y = resid(mod_qtr_ctrl))) +
+ggplot(data = sg_vote_gen, aes(x = fitted(mod_qtr_c), y = resid(mod_qtr_c))) +
   geom_point(color = "blue") +
   geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
   labs(title = "Residuals vs. Fitted Values",
@@ -296,7 +297,7 @@ ggplot(data = sg_vote_gen, aes(x = fitted(mod_qtr_ctrl), y = resid(mod_qtr_ctrl)
   theme_minimal()
 
 # bptest results aren't significant either
-bptest(mod_qtr_ctrl)
+bptest(mod_qtr_c)
 
 # But lets go ahead and use this function to calculate robust ses
 # anyway just to see what results look like 
@@ -343,7 +344,7 @@ stargazer(mod_unemp, mod_PAPunemp, type = 'html',
 
 
 # exporting result of covariate regressions using robust ses
-stargazer(mod_cap_ctrl, mod_qtr_ctrl, mod_cap_ctrl2, mod_qtr_ctrl2, type = 'html', 
+stargazer(mod_cap_c, mod_qtr_c, mod_cap_c2, mod_qtr_c2, type = 'html', 
           # setting title
           title = "Estimating the effect of economic variables on the PAP's vote share in general elections",
           # labeling dependent variables
@@ -356,10 +357,10 @@ stargazer(mod_cap_ctrl, mod_qtr_ctrl, mod_cap_ctrl2, mod_qtr_ctrl2, type = 'html
           digits = 3, # setting to 3 s.f.
           # ensuring that results use robust ses
           se = list(
-            robust_se(mod_cap_ctrl),
-            robust_se(mod_qtr_ctrl),
-            robust_se(mod_cap_ctrl2),
-            robust_se(mod_qtr_ctrl2)
+            robust_se(mod_cap_c),
+            robust_se(mod_qtr_c),
+            robust_se(mod_cap_c2),
+            robust_se(mod_qtr_c2)
           ),
           align = TRUE, # aligning table nicely
           out = here('Robust Results', 'genelection_covariateR.html')) # saving as file

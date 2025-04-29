@@ -1,2 +1,0 @@
-"0","# new variable - share of males"
-"0","combined <- combined %>% mutate(share_male = as.numeric(gsub("","", """", Males)) / as.numeric(gsub("","", """", total.x)))"

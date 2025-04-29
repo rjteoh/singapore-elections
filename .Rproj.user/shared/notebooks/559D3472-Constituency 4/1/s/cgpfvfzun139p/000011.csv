@@ -1,2 +1,0 @@
-"0","combined <- combined %>% mutate(share_all = PAP / Electorate)"
-"0","combined <- combined %>% mutate(share_WP = PAP / (PAP + WP))"

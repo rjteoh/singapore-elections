@@ -1,2 +1,0 @@
-"0","combined <- left_join(combined, geo_income_2020, by = ""Planning.Areas"")"
-"0","combined %>% clean_names()"
